@@ -12,6 +12,10 @@ public class EvolutionState : MonoBehaviour {
 	public float startVelocity;
 	public int numTrackPoints;
 	private ProblemInfo info;
+    public int tamTorneio;      // tamanho do torneio a definir no unity
+    public int selecao;         // 0 - Random, 1- Torneio
+    public int numPontosCorte;  // num de pontos de corte na recombinação
+    public int individuo;       // 0 - ExampleInividual ; 1 - NovoIndividuo
 
 
 	public int numGenerations;
@@ -20,7 +24,7 @@ public class EvolutionState : MonoBehaviour {
 	public float crossoverProbability;
 
 	private List<Individual> population;
-	private SelectionMethod randomSelection;
+	private SelectionMethod selection;
 
 	private int evaluatedIndividuals;
 	private int currentGeneration;
@@ -46,7 +50,19 @@ public class EvolutionState : MonoBehaviour {
 		info.startVelocity = startVelocity;
 		info.numTrackPoints = numTrackPoints;
 
-		randomSelection = new RandomSelection (); //change accordingly
+        if(selecao == 0)
+        {
+            selection = new RandomSelection();
+        }
+        if(selecao == 1)
+        {
+            selection = new SelecaoTorneio(tamTorneio); 
+        }
+
+        
+        
+        
+      
 		stats = new StatisticsLogger (statsFilename);
 
 		drawer = new PolygonGenerator ();
@@ -105,9 +121,18 @@ public class EvolutionState : MonoBehaviour {
 	void InitPopulation () {
 		population = new List<Individual>();
 		while (population.Count<populationSize) {
-			ExampleIndividual newind = new ExampleIndividual(info); //change accordingly
-			newind.Initialize();
-			population.Add (newind);
+            if (individuo == 0)
+            {
+                ExampleIndividual newind = new ExampleIndividual(info);
+                newind.Initialize();
+                population.Add(newind);
+            }
+            if (individuo == 1)
+            {
+                NovoIndividuo newind = new NovoIndividuo(info, numTrackPoints);
+                newind.Initialize();
+                population.Add(newind);
+            }
 		}
 	}
 
@@ -117,7 +142,7 @@ public class EvolutionState : MonoBehaviour {
 
 		//breed individuals and place them on new population. We'll apply crossover and mutation later 
 		while(newpop.Count<populationSize) {
-			List<Individual> selectedInds = randomSelection.selectIndividuals(population,2); //we should propably always select pairs of individuals
+			List<Individual> selectedInds = selection.selectIndividuals(population,2); //we should propably always select pairs of individuals
 			for(int i =0; i< selectedInds.Count;i++) {
 				if(newpop.Count<populationSize) {
 					newpop.Add(selectedInds[i]); //added individuals are already copys, so we can apply crossover and mutation directly

@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
+// Gravar estatisticas
+// Acrescentar mais dados como: desvio padrão e o resto que é pedido no enunciado
+// Está a ser colocado o melhor e a média
 public class StatisticsLogger {
 	
 	public Dictionary<int,float> bestFitness;
