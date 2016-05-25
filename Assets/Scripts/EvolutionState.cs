@@ -129,7 +129,7 @@ public class EvolutionState : MonoBehaviour {
             }
             if (individuo == 1)
             {
-                NovoIndividuo newind = new NovoIndividuo(info, numTrackPoints);
+                NovoIndividuo newind = new NovoIndividuo(info, numPontosCorte);
                 newind.Initialize();
                 population.Add(newind);
             }

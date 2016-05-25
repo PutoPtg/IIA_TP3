@@ -114,16 +114,16 @@ public class NovoIndividuo : Individual
         }
 
         // Verificação divisão por 0 e n > numTrackPoints
-        if(n == 0 || n > info.numTrackPoints)
+        if(n == 0 || n > info.numTrackPoints-1)
         {
             return;
         }
 
         // se o numPontosCorte == 2
-        if(n == 2)
+        if (n == 2)
         {
             int crossoverPoint1 = Mathf.FloorToInt(info.numTrackPoints / 3);
-            int crossoverPoint2 = crossoverPoint1 * 2;
+            int crossoverPoint2 = info.numTrackPoints - crossoverPoint1;
 
             for (int i = crossoverPoint1; i < crossoverPoint2; i++)
             {
@@ -134,16 +134,48 @@ public class NovoIndividuo : Individual
 
         }
         // Caso seja mais
-        else
-        {
-            int crossoverPoint = Mathf.FloorToInt(info.numTrackPoints / n);
+        else {
+            int solucao = info.numTrackPoints / n;
+            int resto = info.numTrackPoints % n;
+
+            int[] sol = new int[info.numTrackPoints];
+            int[] corte = new int[info.numTrackPoints];
+            int soma = 0, i = 0;
+
+            while(soma < info.numTrackPoints)
+            {
+                sol[i] = solucao;
+                if(resto > 0)
+                {
+                    sol[i]++;
+                    resto--;
+                }
+
+                soma += sol[i];
+                corte[i] = soma;
+                i++;
+            }
+
+            for(int j=0; j<i; j++)
+            {
+                for (int v = corte[j]; v < corte[j+1] ; v++)
+                {
+                    float tmp = trackPoints[keys[v]];
+                    trackPoints[keys[v]] = partner.trackPoints[keys[v]];
+                    partner.trackPoints[keys[v]] = tmp;
+                }
+                
+            }
+
+
+            /*int crossoverPoint = Mathf.FloorToInt(info.numTrackPoints / n);
 
             for (int i = 0; i < crossoverPoint; i++)
             {
                 float tmp = trackPoints[keys[i]];
                 trackPoints[keys[i]] = partner.trackPoints[keys[i]];
                 partner.trackPoints[keys[i]] = tmp;
-            }
+            }*/
         }
     }
 

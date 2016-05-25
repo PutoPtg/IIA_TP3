@@ -34,7 +34,7 @@ public class SelecaoTorneio : SelectionMethod
             {
                 // Escolhe individuo aleatório
                 Individual ind = oldpop[Random.Range(0, popsize)];
-                listaTorneio.Add(ind.Clone());
+                listaTorneio.Add(ind);
             }
 
             // Compara os individuos selecionados em relação à sua aptidão
