@@ -16,6 +16,8 @@ public class EvolutionState : MonoBehaviour {
     public int selecao;         // 0 - Random, 1- Torneio
     public int numPontosCorte;  // num de pontos de corte na recombinação
     public int individuo;       // 0 - ExampleInividual ; 1 - NovoIndividuo
+    public int elitismo;        // 0 - nao, 1 - sim
+    public int indElitismo;     // numero de individuos escolhidos no elitismo
 
 
 	public int numGenerations;
@@ -61,7 +63,7 @@ public class EvolutionState : MonoBehaviour {
 
         
         
-        
+      
       
 		stats = new StatisticsLogger (statsFilename);
 
@@ -99,8 +101,11 @@ public class EvolutionState : MonoBehaviour {
 			//if all individuals have been evaluated on the current generation, breed a new population
 			if(evaluatedIndividuals==populationSize) {
 				stats.PostGenLog(population,currentGeneration);
+
+             
+                population = BreedPopulation();
+        
 				
-				population = BreedPopulation();
 				evaluatedIndividuals=0;
 				currentGeneration++;
 			}
@@ -138,35 +143,107 @@ public class EvolutionState : MonoBehaviour {
 
 
 	List<Individual> BreedPopulation() {
-		List<Individual> newpop = new List<Individual>();
+        List<Individual> newpop = new List<Individual>();
+        // Sem elitismo
+        if (elitismo == 0)
+        {
+            //breed individuals and place them on new population. We'll apply crossover and mutation later 
+            while (newpop.Count < populationSize)
+            {
+                List<Individual> selectedInds = selection.selectIndividuals(population, 2); //we should propably always select pairs of individuals
+                for (int i = 0; i < selectedInds.Count; i++)
+                {
+                    if (newpop.Count < populationSize)
+                    {
+                        newpop.Add(selectedInds[i]); //added individuals are already copys, so we can apply crossover and mutation directly
+                    }
+                    else { //discard any excess individuals
+                        selectedInds.RemoveAt(i);
+                    }
+                }
 
-		//breed individuals and place them on new population. We'll apply crossover and mutation later 
-		while(newpop.Count<populationSize) {
-			List<Individual> selectedInds = selection.selectIndividuals(population,2); //we should propably always select pairs of individuals
-			for(int i =0; i< selectedInds.Count;i++) {
-				if(newpop.Count<populationSize) {
-					newpop.Add(selectedInds[i]); //added individuals are already copys, so we can apply crossover and mutation directly
-				}
-				else{ //discard any excess individuals
-					selectedInds.RemoveAt(i);	
-				}
-			}
+                //apply crossover between pairs of individuals and mutation to each one
+                while (selectedInds.Count > 1)
+                {
+                    selectedInds[0].Crossover(selectedInds[1], crossoverProbability);
+                    selectedInds[0].Mutate(mutationProbability);
+                    selectedInds[1].Mutate(mutationProbability);
+                    selectedInds.RemoveRange(0, 2);
+                }
+                if (selectedInds.Count == 1)
+                {
+                    selectedInds[0].Mutate(mutationProbability);
+                    selectedInds.RemoveAt(0);
+                }
+            }
+        }
+        // Com elitismo
+        else
+        {
+            List<Individual> elite = new List<Individual>();
+            //breed individuals and place them on new population. We'll apply crossover and mutation later 
+            while (newpop.Count < populationSize)
+            {
+                List<Individual> selectedInds = selection.selectIndividuals(population, 2); //we should propably always select pairs of individuals
+                elite.Add(selectedInds[0]);
+                elite.Add(selectedInds[1]);
 
-			//apply crossover between pairs of individuals and mutation to each one
-			while(selectedInds.Count>1) {
-				selectedInds[0].Crossover(selectedInds[1],crossoverProbability);
-				selectedInds[0].Mutate(mutationProbability);
-				selectedInds[1].Mutate(mutationProbability);
-				selectedInds.RemoveRange(0,2);
-			}
-			if(selectedInds.Count==1) {
-				selectedInds[0].Mutate(mutationProbability);
-				selectedInds.RemoveAt(0);
-			}
-		}
+                //newpop = selectedInds.GetRange(0, indElitismo);
+
+                for (int i = 0; i < selectedInds.Count; i++)
+                {
+                    if (newpop.Count < populationSize)
+                    {
+                        newpop.Add(selectedInds[i]); //added individuals are already copys, so we can apply crossover and mutation directly
+                    }
+                    else { //discard any excess individuals
+                        selectedInds.RemoveAt(i);
+                    }
+                }
+
+                //apply crossover between pairs of individuals and mutation to each one
+                while (selectedInds.Count > 1)
+                {
+                    selectedInds[0].Crossover(selectedInds[1], crossoverProbability);
+                    selectedInds[0].Mutate(mutationProbability);
+                    selectedInds[1].Mutate(mutationProbability);
+                    selectedInds.RemoveRange(0, 2);
+                }
+                if (selectedInds.Count == 1)
+                {
+                    selectedInds[0].Mutate(mutationProbability);
+                    selectedInds.RemoveAt(0);
+                }
+            }
+            // Compara os individuos selecionados em relação à sua aptidão
+            IComparer<Individual> aptidao = new Best();
+
+            // Ordenação da aptidão por ordem crescente
+            // Ordenação da lista para depois escolher sempre os melhores dos melhores
+            elite.Sort(aptidao);
+
+            for(int i = 0; i<indElitismo; i++)
+            {
+                newpop[i] = elite[i];
+  
+            }
+
+        }
+		
 
 		return newpop;
 	}
+
+
+    public class Best : IComparer<Individual>
+    {
+        public int Compare(Individual a, Individual b)
+        {
+            return (a.fitness).CompareTo(b.fitness);
+        }
+    }
+
+
 
 }
 

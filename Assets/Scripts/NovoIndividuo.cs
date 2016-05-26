@@ -167,15 +167,6 @@ public class NovoIndividuo : Individual
                 
             }
 
-
-            /*int crossoverPoint = Mathf.FloorToInt(info.numTrackPoints / n);
-
-            for (int i = 0; i < crossoverPoint; i++)
-            {
-                float tmp = trackPoints[keys[i]];
-                trackPoints[keys[i]] = partner.trackPoints[keys[i]];
-                partner.trackPoints[keys[i]] = tmp;
-            }*/
         }
     }
 

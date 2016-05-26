@@ -48,10 +48,4 @@ public abstract class Individual {
 		return "[Individual] track points: [" + string.Join (",", result.ConvertAll<string> (f => f.ToString()).ToArray()) + "]";
 	}
 
-
-
-
-
-
-
 }
